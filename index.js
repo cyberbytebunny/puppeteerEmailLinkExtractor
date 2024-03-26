@@ -20,8 +20,10 @@ const startPuppeteer = async () => {
     await page.setCookie({
         name: 'session',
         value: adminSession,
-        domain: 'http://'+website
+        domain: website
     });
+
+    await page.close()
 };
 
 const findUrls = (text) => {
@@ -38,10 +40,14 @@ app.post('/email', async (req, res) => {
 
     const urls = findUrls(message);
     if (urls && urls.length > 0) {
-        await page.goto(urls[0], {waitUntil: 'networkidle2'});
+      try {
+        await page.goto(urls[0]);
+        await page.close()
+        return res.send(`Navigated to URL: ${urls[0]}`);
+      } catch(e) {}
+    } else {
+          return res.send('No URL found in message');
     }
-
-    res.send('Email processed successfully.');
 });
 
 const PORT = 3000;
