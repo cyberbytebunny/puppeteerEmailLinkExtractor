@@ -14,8 +14,6 @@ const startPuppeteer = async () => {
     browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
     page = await browser.newPage();
 
-    await page.goto('http://'+website);
-
     // Setting a cookie
     await page.setCookie({
         name: 'session',
@@ -23,7 +21,9 @@ const startPuppeteer = async () => {
         domain: website
     });
 
-    await page.close()
+    await page.goto('http://'+website);
+
+    console.log("SETUP DONE")
 };
 
 const findUrls = (text) => {
@@ -41,10 +41,11 @@ app.post('/email', async (req, res) => {
     const urls = findUrls(message);
     if (urls && urls.length > 0) {
       try {
-        await page.goto(urls[0]);
-        await page.close()
+        await page.goto(urls[0], {waitUntil: 'networkidle2'});
         return res.send(`Navigated to URL: ${urls[0]}`);
-      } catch(e) {}
+      } catch(e) {
+        return res.send(`ERROR: ${e}`)
+      }
     } else {
           return res.send('No URL found in message');
     }
